@@ -1,0 +1,185 @@
+<meta charset="utf-8">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>D3 Assignment FIT5147 28158539</title>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"
+	charset="utf-8">
+</script>
+
+<style>
+	div.tooltip {	
+		position: absolute;			
+		text-align: center;			
+		width: 140px;					
+		height: 50px;					
+		padding: 2px;				
+		font: 12px sans-serif;		
+		background: lightsteelblue;	
+		border: 0px;		
+		border-radius: 8px;			
+		pointer-events: none;			
+	}
+</style>
+
+</head>
+
+<body style="background-color:palegoldenrod">
+	<script type="text/javascript">
+		var div = d3.select("body").append("div")	
+		.attr("class", "tooltip")				
+		.style("opacity", 0);
+//Load Data File
+d3.json("data-02.json", function(error, data) {
+
+//Change the data files
+var datanode = data.nodes;
+var datalink = data.links;
+datanode.forEach(function(d) {
+	d.id = d.id;
+	d.x = d.x;
+	d.y = d.y;
+});
+datalink.forEach(function(d) {
+	d.node01 = d.node01;
+	d.node02 = d.node02;
+	d.amount = d.amount;
+});
+//Max Function, Creating new Array -finding out max number to insert into width and height
+var arrayW = [];
+datanode.forEach(function(d){
+	var newNumber = d.x;
+	arrayW.push(newNumber);
+});
+var arrayH = []
+datanode.forEach(function(d){
+	var newNumber = d.y;
+	arrayW.push(newNumber);
+});
+//Finding out the optimal Height and Width for the Presentation
+var maxW = d3.max(arrayW) + 100;
+var maxH = d3.max(arrayH) + 100;
+
+//Creating total amount for each node:
+datanode.forEach(function(d){
+	var temp = [];
+    var count = 0;
+	datalink.forEach(function(x){
+		if (x.node01 == d.id || x.node02 == d.id){
+			temp.push(x.amount);
+            count++;
+		}
+	});
+	d.total = d3.sum(temp);
+    d.count = count;
+});
+//Creating x, y coordinate for datalink:
+datalink.forEach(function(d){
+	temp1 = [];
+	temp2 = [];
+	datanode.forEach(function(x){
+		if (d.node01 == x.id ){
+			temp1.push(x.x);
+			temp1.push(x.y);
+		}
+	});
+	datanode.forEach(function(x){
+		if (d.node02 == x.id ){
+			temp2.push(x.x);
+			temp2.push(x.y);
+		} 
+	});
+	d.x1 = temp1[0];
+	d.y1 = temp1[1];
+	d.x2 = temp2[0];
+	d.y2 = temp2[1];
+});
+
+//Create SVG element:
+var svg = d3.select("body")
+.append("svg")
+.attr("width", maxW)
+.attr("height", maxH)
+.style("display","block")
+.style("margin","auto")
+.append("g");
+
+//Creating Line
+var line = svg.attr("class", "line").selectAll("line")
+.data(datalink)
+.enter().append("line");
+
+line.style("stroke", "red")
+.attr("stroke-width", function(d){
+	size = d.amount/70;
+	if (size < 4){
+		size = 4;
+	}
+	return size;
+})
+.attr("x1", function (d) {
+	return d.x1;
+})
+.attr("y1", function (d) {
+	return d.y1;
+})
+.attr("x2", function (d) {
+	return d.x2;
+})
+.attr("y2", function (d) {
+	return d.y2;
+})
+.append("title").text(function(d){
+	return "From " + d.node01 + " to " 
+	+ d.node02 + ": " + d.amount;
+});
+
+//Creating circles:
+var circle = svg.selectAll("circle")
+.data(datanode)
+.enter()
+.append("circle");
+
+circle.style("stroke", "gray")
+.style("fill", "black")
+.attr("cx", function(d) { 
+	return d.x; 
+})
+.attr("cy", function(d) { 
+	return d.y; 
+})
+.attr("r", function(d) { 
+	radius = d.total/100;
+	if(radius < 10){
+		radius = 10;
+	} 
+	return radius;
+})
+.on("mouseover", function(d) {		
+    d3.selectAll('circle').style("fill", "silver");
+    d3.selectAll('line').style("stroke", function(n) {            // <== Add these
+            if ((n.x1 == d.x && n.y1 == d.y) || (n.x2 == d.x && n.y2 == d.y)) {return "blue"}  // <== Add these
+            else    { return "silver" }          // <== Add these
+        ;});  
+    d3.select(this).style("fill", "black");
+	div.transition()		
+	.duration(200)		
+	.style("opacity", .9);		
+	div.html("<strong>"+d.id + "</strong><br/>Total Amount : "  + d.total + "<br/> Connections : " +d.count)	
+	.style("left", (d3.event.pageX) + "px")		
+	.style("top", (d3.event.pageY - 28) + "px");	
+})					
+.on("mouseout", function(d) {	
+    d3.selectAll('circle').style("fill", "black");
+    d3.selectAll('line').style("stroke","red");
+	div.transition()		
+	.duration(500)		
+	.style("opacity", 0);	
+});
+
+// End
+});
+</script>
+</body>
+</html>

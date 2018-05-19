@@ -1,0 +1,76 @@
+<html>
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+
+<head>
+    <script type="text/javascript" src="d3.v2.min.js"></script>    
+</head>
+    
+<body>
+</body>    
+    
+    
+<script>
+
+    var jsondata = d3.json("data.json", function(data) {
+        console.log(data.nodes);
+     
+    });
+    
+    console.log(jsondata);
+</script>
+</html>    
+    
+
+
+
+<script>
+
+    
+// test 1
+    var svgCanvas = d3.select("svg")
+        .attr("width", 960)
+        .attr("height", 540);
+    
+    d3.json("data.json", function(d){
+        console.log(d.$nodes); 
+        
+        svgCanvas.selectAll("circle")
+            .data(d).enter() // create place hodlers if the data are new
+            .append("circle") // create one circle for each
+            .attr("cx", function(thisElement, index){ // calculate the centres of circles 
+                return 150 + index * 150;
+            })
+            .attr("cy", 300)
+            .attr("r", function(thisElement, index){ // use the value from data to create the radius 
+                return thisElement["value"];
+            });
+        
+    });
+    
+    
+//test 2    
+ var spaceCircles = [30, 70, 110];
+ 
+ var svgContainer = d3.select("body").append("svg")
+                                     .attr("width", 200)
+                                     .attr("height", 200);
+ 
+ var circles = svgContainer.selectAll("circle")
+                          .data(spaceCircles)
+                           .enter()
+                          .append("circle");
+
+ var circleAttributes = circles
+                      .attr("cx", function (d) { return d; })
+                        .attr("cy", function (d) { return d; })
+                       .attr("r", 20 )
+                       .style("fill", function(d) {
+                         var returnColor;
+                         if (d === 30) { returnColor = "green";
+                         } else if (d === 70) { returnColor = "purple";
+                         } else if (d === 110) { returnColor = "red"; }
+                         return returnColor;
+                      });
+
+
+</script>
